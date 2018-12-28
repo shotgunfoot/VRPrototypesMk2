@@ -3,12 +3,29 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour
-{
-    //The speed of the bullet
-    public float speed;
-
-    private void FixedUpdate()
+{    
+    public IEnumerator Laser(Vector3 origin, Vector3 target, float lerpTime = 1f)
     {
-        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        Vector3 lerpPos;
+        float lerpTimer = 0;        
+        LineRenderer ren = GetComponent<LineRenderer>();        
+        ren.SetPosition(1, target);
+
+        while (lerpTimer < lerpTime)
+        {
+            float lerpPercent = lerpTimer / lerpTime;
+            lerpTimer += Time.deltaTime;
+            lerpPos = Vector3.Lerp(origin, target, lerpPercent);            
+            ren.SetPosition(0, lerpPos);
+            yield return null;
+        }
+        Destroy(gameObject);
+        yield return null;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {       
+        GetComponent<SphereCollider>().enabled = false;
+        GetComponentInChildren<Light>().enabled = false;
     }
 }
