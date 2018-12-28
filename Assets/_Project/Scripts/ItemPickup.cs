@@ -7,7 +7,17 @@ using Valve.VR.InteractionSystem;
 public class ItemPickup : MonoBehaviour
 {
 
-    public bool RequirePressToTake;
+    [EnumFlags]
+    public Hand.AttachmentFlags attachmentFlags = Hand.defaultAttachmentFlags;
+    public Transform AttachPoint;
+
+    private bool held = false;
+    private LazerGun gun;
+
+    private void Start()
+    {
+        gun = GetComponent<LazerGun>();
+    }
 
     private void OnHandHoverBegin(Hand hand)
     {
@@ -16,36 +26,78 @@ public class ItemPickup : MonoBehaviour
 
     private void HandHoverUpdate(Hand hand)
     {
-        if (RequirePressToTake)
+
+        if (!held)
         {
             GrabTypes startingGrab = hand.GetGrabStarting();
 
-            //this means any grabtype grabs it
-            if (startingGrab != GrabTypes.None)
-            {
-                //AttachObjectToHand();
-                Debug.Log("any!");
-            }
+            ////this means any grabtype grabs it
+            // if (startingGrab != GrabTypes.None)
+            // {
+            //     //AttachObjectToHand();
+            //     Debug.Log("any!");
+            // }
 
             //this means a pinch grabtype grabs it
-            if(startingGrab == GrabTypes.Pinch)
-            {
-                //AttachObjectToHand();
-                Debug.Log("pinched");
-            }
+            //if(startingGrab == GrabTypes.Pinch)
+            //{
+            //    //AttachObjectToHand();                
+            //}
 
             //this means a grip grabtype grabs it
-            if(startingGrab == GrabTypes.Grip)
+            if (startingGrab == GrabTypes.Grip)
             {
-                //AttachObjectToHand();
-                Debug.Log("gripped!");
+                AttachObjectToHand(hand, startingGrab);
             }
         }
     }
 
-    private void AttachObjectToHand()
+    private void HandAttachedUpdate(Hand hand)
     {
-        Debug.Log("attach to hand!");
+        if (held)
+        {
+            GrabTypes startingGrab = hand.GetGrabStarting();
+
+            ////this means any grabtype grabs it
+            // if (startingGrab != GrabTypes.None)
+            // {
+            //     //AttachObjectToHand();
+            //     Debug.Log("any!");
+            // }
+
+            //this means a pinch grabtype grabs it
+            //if(startingGrab == GrabTypes.Pinch)
+            //{
+            //    //AttachObjectToHand();                
+            //}
+
+            //this means a grip grabtype grabs it
+            if (startingGrab == GrabTypes.Grip)
+            {
+                DropAttachedObject(hand);
+            }
+        }
+    }
+
+    private void SetRotationAndPosition()
+    {
+        transform.localPosition = AttachPoint.localPosition;
+        transform.localRotation = AttachPoint.localRotation;
+    }
+
+    private void AttachObjectToHand(Hand hand, GrabTypes grabType)
+    {
+        held = true;
+        hand.AttachObject(gameObject, grabType, attachmentFlags);
+        SetRotationAndPosition();
+        gun.enabled = true;
+    }
+
+    private void DropAttachedObject(Hand hand)
+    {
+        held = false;
+        hand.DetachObject(gameObject);
+        gun.enabled = false;
     }
 
 }
